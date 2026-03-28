@@ -30,5 +30,10 @@ class CommunityAreaSerializer(serializers.ModelSerializer):
             }
         ]
         """
-
-        pass
+        year = list(self.context.values())[0]
+        totalPermits = RestaurantPermit.objects.filter(
+            community_area_id=obj.area_id,
+            issue_date__year=year
+        )
+        return len(totalPermits)
+        # pass
