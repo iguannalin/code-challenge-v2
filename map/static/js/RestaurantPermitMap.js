@@ -70,9 +70,13 @@ export default function RestaurantPermitMap() {
      * 2) On hover, display a popup with the community area's raw 
      * permit count for the year
      */
+    const communityObject = currentYearData.find((obj) => obj.name === feature.properties.community)
     layer.setStyle()
-    layer.on("", () => {
-      layer.bindPopup("")
+    layer.on("mouseover", () => {
+      layer.bindPopup(`
+      <p>${communityObject["name"]}</p>
+      <p>Number of permits: ${communityObject["num_permits"]}</p>
+      `)
       layer.openPopup()
     })
   }
