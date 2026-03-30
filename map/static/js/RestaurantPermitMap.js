@@ -41,6 +41,7 @@ export default function RestaurantPermitMap() {
 
   const [currentYearData, setCurrentYearData] = useState([])
   const [year, setYear] = useState(2026)
+  const [totalPermits, setTotalPermits] = useState(0);
 
   const yearlyDataEndpoint = `/map-data/?year=${year}`
 
@@ -56,10 +57,7 @@ export default function RestaurantPermitMap() {
 
 
   function getColor(percentageOfPermits) {
-    /**
-     * TODO: Use this function in setAreaInteraction to set a community 
-     * area's color using the communityAreaColors constant above
-     */
+    return communityAreaColors[Math.floor(percentageOfPermits * 10) % 4];
   }
 
   function setAreaInteraction(feature, layer) {
@@ -71,11 +69,17 @@ export default function RestaurantPermitMap() {
      * permit count for the year
      */
     const communityObject = currentYearData.find((obj) => obj.name === feature.properties.community)
-    layer.setStyle()
+    const percentage = (+communityObject["num_permits"] / totalPermits) * 20; // multiply by 20 for more visibility
+    const color = getColor(percentage);
+    layer.setStyle({
+      fillOpacity: percentage,
+      fillColor: color,
+      opacity: percentage + 0.2
+    })
     layer.on("mouseover", () => {
       layer.bindPopup(`
-      <p>${communityObject["name"]}</p>
-      <p>Number of permits: ${communityObject["num_permits"]}</p>
+      <p>${ communityObject["name"] }</p>
+      <p>Number of permits: ${ communityObject["num_permits"] }</p>
       `)
       layer.openPopup()
     })
