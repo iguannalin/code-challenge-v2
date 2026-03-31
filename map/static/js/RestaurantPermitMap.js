@@ -14,8 +14,8 @@ function YearSelect({ setFilterVal }) {
   })
   const options = years.map((year) => {
     return (
-      <option value={year} key={year}>
-        {year}
+      <option value={ year } key={ year }>
+        { year }
       </option>
     )
   })
@@ -23,14 +23,14 @@ function YearSelect({ setFilterVal }) {
   return (
     <>
       <label htmlFor="yearSelect" className="fs-3">
-        Filter by year:{" "}
+        Filter by year:{ " " }
       </label>
       <select
         id="yearSelect"
         className="form-select form-select-lg mb-3"
-        onChange={(e) => setFilterVal(e.target.value)}
+        onChange={ (e) => setFilterVal(e.target.value) }
       >
-        {options}
+        { options }
       </select>
     </>
   )
@@ -42,35 +42,33 @@ export default function RestaurantPermitMap() {
   const [currentYearData, setCurrentYearData] = useState([])
   const [year, setYear] = useState(2026)
   const [totalPermits, setTotalPermits] = useState(0);
+  const [maxNumPermits, setMaxNumPermits] = useState(0);
 
-  const yearlyDataEndpoint = `/map-data/?year=${year}`
+  const yearlyDataEndpoint = `/map-data/?year=${ year }`;
 
   useEffect(() => {
-    fetch()
-      .then((res) => res.json())
-      .then((data) => {
-        /**
-         * TODO: Fetch the data needed to supply to map with data
-         */
-      })
+    fetch(yearlyDataEndpoint).then((res) => res.json()).then((data) => {
+      setCurrentYearData(data);
+      let max = 0; let total = 0;
+      data.forEach((obj) => {
+        total += +obj["num_permits"];
+        max = Math.max(max, +obj["num_permits"]);
+      });
+      setTotalPermits(total);
+      setMaxNumPermits(max);
+    });
   }, [yearlyDataEndpoint])
 
 
-  function getColor(percentageOfPermits) {
-    return communityAreaColors[Math.floor(percentageOfPermits * 10) % 4];
+  function getColor(id) {
+    return communityAreaColors[id % 4];
   }
 
   function setAreaInteraction(feature, layer) {
-    /**
-     * TODO: Use the methods below to:
-     * 1) Shade each community area according to what percentage of 
-     * permits were issued there in the selected year
-     * 2) On hover, display a popup with the community area's raw 
-     * permit count for the year
-     */
     const communityObject = currentYearData.find((obj) => obj.name === feature.properties.community)
-    const percentage = (+communityObject["num_permits"] / totalPermits) * 20; // multiply by 20 for more visibility
-    const color = getColor(percentage);
+    const percentage = +communityObject["num_permits"] / maxNumPermits;
+    const color = getColor(communityObject["area_id"]);
+    console.log({percentage})
     layer.setStyle({
       fillOpacity: percentage,
       fillColor: color,
@@ -87,30 +85,29 @@ export default function RestaurantPermitMap() {
 
   return (
     <>
-      <YearSelect filterVal={year} setFilterVal={setYear} />
+      <YearSelect filterVal={ year } setFilterVal={ setYear }/>
       <p className="fs-4">
-        Restaurant permits issued this year: {/* TODO: display this value */}
+        { totalPermits } Restaurant permits issued in { year }
       </p>
       <p className="fs-4">
-        Maximum number of restaurant permits in a single area:
-        {/* TODO: display this value */}
+        Maximum number of restaurant permits in a single area: { maxNumPermits }
       </p>
       <MapContainer
         id="restaurant-map"
-        center={[41.88, -87.62]}
-        zoom={10}
+        center={ [41.88, -87.62] }
+        zoom={ 10 }
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"
         />
-        {currentYearData.length > 0 ? (
+        { currentYearData.length > 0 ? (
           <GeoJSON
-            data={RAW_COMMUNITY_AREAS}
-            onEachFeature={setAreaInteraction}
-            key={maxNumPermits}
+            data={ RAW_COMMUNITY_AREAS }
+            onEachFeature={ setAreaInteraction }
+            key={ maxNumPermits }
           />
-        ) : null}
+        ) : null }
       </MapContainer>
     </>
   )
